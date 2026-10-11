@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+  © 2026 MieeL（ミエル） https://www.mieel-support-school.com/  All rights reserved.
+  学校・家庭・療育機関などで子どもの学習に使うこと、作ったプリントを印刷して配ることは自由です。
+  プログラム・画像・文章の無断転載・複製、改変しての公開・再配布、販売はお断りします（くわしくは LICENSE.md）。
+-->
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="{{SHORT}}">
+<meta name="theme-color" content="{{THEME}}">
+<title>{{TITLE}}｜MieeL</title>
+<style>
+/*BASE_CSS*/
+/*PRINTUI_CSS*/
+/*APP_CSS*/
+</style>
+</head>
+<body>
+<header class="topbar">
+  <button class="chip home" id="homeBtn" type="button" aria-label="さいしょの ページに もどる" hidden><i></i><span class="emo">🏠</span><span class="lbl" id="homeLbl">さいしょ</span></button>
+  <button class="chip" id="whoChip" type="button" hidden></button>
+  <div class="brand"><div class="mieel-brand" aria-label="MieeL"><span class="orb-mini"></span><strong>MieeL</strong><span class="url">mieel-support-school.com</span></div><span class="appname">{{TITLE}}</span></div>
+  <span id="extraChips"></span>
+  <button class="chip" id="printBtn" type="button" aria-label="A4プリントを つくる" hidden>🖨️<span class="appname">プリント</span></button>
+  <button class="gear" id="gear" type="button" aria-label="先生用のせってい（ながおし）">⚙️</button>
+</header>
+<main id="view"></main>
+<div class="modal" id="settings" role="dialog" aria-modal="true" aria-label="先生用せってい"><div class="panel" id="settingsPanel"></div></div>
+<div class="modal" id="printModal" role="dialog" aria-modal="true" aria-label="プリント"><div class="panel wide" id="printPanel"></div></div>
+<div class="modal" id="libModal" role="dialog" aria-modal="true" aria-label="えらぶ"><div class="panel" id="libPanel"></div></div>
+<input type="file" id="fileIn" hidden>
+<div class="toast" id="toast"></div>
+<div id="printRoot"></div>
+<script>
+function jaSay(t) {
+  // 読み上げで 単語の あたまの「は」「へ」が 助詞（わ・え）と 読まれないように カタカナに する（はこ→ハこ、へや→ヘや）
+  return String(t == null ? '' : t).replace(/なかまはずれ/g, '仲間外れ').replace(/(^|[\s、。！？!?・（(「『])([はへ])(?=[ぁ-ゖァ-ヺー一-鿿])/g, function (m, a, c) { return a + (c === 'は' ? 'ハ' : 'ヘ'); });
+}
+(function () {
+  'use strict';
+/*APP_JS*/
+})();
+</script>
+</body>
+</html>

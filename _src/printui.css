@@ -1,0 +1,12 @@
+  /* ---------- 🖨️ プリントの 画面 ---------- */
+  .panel.wide { width: min(100%, 1180px); }
+  .seglabel { margin: 12px 0 6px; font-weight: 700; font-size: 15px; }
+  .prgrid { display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 18px; margin-top: 10px; }
+  .prctl .seg button { min-width: 0; }
+  .prctl .seg.types { flex-direction: column; }
+  .prctl .seg.types button { text-align: left; padding: 10px 14px; }
+  .btn.blue { background: #1C7ED6; color: #fff; }
+  .prprev { background: #E9ECEF; border-radius: 16px; padding: 12px; max-height: 76vh; overflow-y: auto; }
+  .pwrap { margin: 0 auto 14px; box-shadow: 0 4px 14px rgba(0,0,0,.18); overflow: hidden; background: #fff; }
+  .pwrap .ppage { transform-origin: top left; }
+  @media (max-width: 820px) { .prgrid { grid-template-columns: 1fr; } }

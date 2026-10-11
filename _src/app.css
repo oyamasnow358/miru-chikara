@@ -1,0 +1,59 @@
+  /* ============================================================
+     みる ちから
+     ============================================================ */
+  :root { --bg: #F5F2FF; --line: #DDD5F7; --accent: #7048E8; }
+  .brand { color: #9A88D6; }
+  .lvl { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+  .lvl button { border: 3px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 14px; font-size: clamp(14px, 1.7vw, 18px); }
+  .lvl button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .mcard .st { position: absolute; top: 8px; right: 12px; font-size: 13px; }
+
+  .g { gap: 8px; }
+  .ghead { display: flex; align-items: center; gap: 10px; }
+  .ghead .ask { flex: 1; text-align: center; font-size: clamp(19px, 2.8vw, 32px); font-weight: 800; }
+  .ghead .cnt { font-size: clamp(15px, 1.8vw, 20px); color: var(--sub); white-space: nowrap; }
+  .ghead .ask .emo { font-size: 1.2em; }
+  .prog { display: flex; gap: 5px; } .prog i { width: 12px; height: 12px; border-radius: 50%; background: var(--line); } .prog i.ok { background: #40C057; } .prog i.now { background: var(--accent); }
+  .stage { flex: 1; min-height: 0; display: flex; gap: clamp(8px, 2vw, 24px); align-items: center; justify-content: center; }
+  .stage svg { max-width: 100%; max-height: 100%; background: #fff; border-radius: 24px; border: 4px solid var(--line); touch-action: manipulation; }
+  .stage.two > div { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+  .stage.two svg { width: 100%; height: 100%; }
+  .stage .lab { position: absolute; top: 6px; left: 14px; font-size: 14px; color: var(--sub); background: #fff; border-radius: 999px; padding: 0 8px; }
+  svg text { user-select: none; -webkit-user-select: none; }
+  svg .hit { fill: transparent; cursor: pointer; }
+  svg .mark { fill: none; stroke: #FA5252; stroke-width: 5; }
+  svg .xmark { stroke: #868E96; stroke-width: 5; opacity: .8; animation: fadeout 1s forwards; }
+  @keyframes fadeout { to { opacity: 0; } }
+  svg .blink { animation: blink .5s 4; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .grid { display: grid; gap: clamp(6px, 1.2vw, 14px); grid-template-columns: repeat(var(--c), minmax(0, 1fr)); width: min(100%, calc((100vh - 230px) * var(--c) / var(--r) )); }
+  .grid button { aspect-ratio: 1; background: #fff; border: 4px solid var(--line); border-radius: 18px; padding: 6%; }
+  .grid button svg { width: 100%; height: 100%; border: none; background: none; border-radius: 0; }
+  .grid button.ok { border-color: #40C057; background: #EBFBEE; }
+  .grid button.ng { animation: shake .4s; }
+  .target { display: flex; align-items: center; gap: 10px; background: #fff; border: 5px solid var(--accent); border-radius: 22px; padding: 6px 14px; }
+  .target svg { width: clamp(60px, 11vh, 110px); height: clamp(60px, 11vh, 110px); border: none; background: none; }
+  .target b { font-size: clamp(16px, 2vw, 22px); }
+  .ends { display: flex; justify-content: space-around; }
+  .tools { display: flex; justify-content: center; gap: 10px; }
+
+  @media (orientation: portrait) { .stage.two { flex-direction: column; } .stage.two > div { width: 100%; height: auto; flex: 1; min-height: 0; } .stage.split { flex-direction: column; } }
+  @media (max-width: 600px), (max-height: 520px) {
+    .stage svg { border-radius: 16px; border-width: 3px; }
+    .grid button { border-width: 3px; border-radius: 12px; }
+    .target { padding: 4px 8px; border-width: 4px; }
+    .ghead .ask { font-size: 18px; }
+  }
+  @media (max-height: 520px) and (orientation: landscape) { .stage.split { flex-direction: row; } .grid { width: min(100%, calc((100vh - 120px) * var(--c) / var(--r))); } .tools .mid-btn { min-height: 38px; } }
+
+  /* プリント */
+  .pw { display: flex; flex-direction: column; gap: 4mm; flex: 1; min-height: 0; align-items: center; }
+  .pw svg { width: 100%; height: auto; }
+  .pw .two { display: flex; flex-direction: column; gap: 5mm; width: 100%; }
+  .pw .two svg { width: 100%; max-height: 112mm; border: .4mm solid #333; border-radius: 3mm; }
+  .pw .tgt { display: flex; align-items: center; gap: 5mm; font-size: 6mm; border: .6mm solid #333; border-radius: 3mm; padding: 2mm 5mm; }
+  .pw .tgt svg { width: 26mm; height: 26mm; }
+  .pw .pgrid { display: grid; grid-template-columns: repeat(var(--c), 1fr); gap: 4mm; width: 100%; }
+  .pw .pgrid > div { border: .3mm solid #999; border-radius: 2mm; aspect-ratio: 1; display: grid; place-items: center; }
+  .pw .pgrid svg { width: 80%; height: 80%; }
+  .pw .ans { font-size: 6mm; align-self: flex-end; }
