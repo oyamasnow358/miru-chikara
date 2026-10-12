@@ -226,6 +226,7 @@
   .target svg { width: clamp(60px, 11vh, 110px); height: clamp(60px, 11vh, 110px); border: none; background: none; }
   .target b { font-size: clamp(16px, 2vw, 22px); }
   .ends { display: flex; justify-content: space-around; }
+  .shadow { filter: brightness(0); opacity: .85; }
   .tools { display: flex; justify-content: center; gap: 10px; }
 
   @media (orientation: portrait) { .stage.two { flex-direction: column; } .stage.two > div { width: 100%; height: auto; flex: 1; min-height: 0; } .stage.split { flex-direction: column; } }
@@ -278,7 +279,7 @@ function jaSay(t) {
      みる ちから（視覚認知）
      まちがいさがし・おなじ かたち・てんつなぎ・せん たどり・かず さがし・め で おう
      ============================================================ */
-  const POOL = ['🍎', '🍌', '🍇', '🍓', '🍉', '🍒', '🐶', '🐱', '🐰', '🐻', '🐼', '🐸', '🐟', '🐞', '🦋', '🚗', '🚌', '🚲', '✈️', '⚽', '🎈', '⭐', '🌸', '🌳', '🏠', '☂️', '🎁', '🧸', '🍰', '🌙', '🍄', '🐤'];
+  const POOL = ['🍎', '🍌', '🍇', '🍓', '🍉', '🍒', '🍑', '🍍', '🥕', '🌽', '🐶', '🐱', '🐰', '🐻', '🐼', '🐸', '🐷', '🐮', '🦁', '🐯', '🐟', '🐞', '🦋', '🐢', '🐙', '🚗', '🚌', '🚲', '✈️', '🚀', '🚂', '⚽', '🏀', '🎈', '⭐', '🌸', '🌻', '🌳', '🏠', '☂️', '🎁', '🧸', '🍰', '🍦', '🌙', '☀️', '🍄', '🐤', '🎸', '📚', '✏️', '🔑', '⏰', '🎩'];
   const ASYM = ['🐶', '🐱', '🐰', '🐸', '🐟', '🚗', '🚌', '🚲', '✈️', '🐤', '☂️', '🦋', '🐞'];
   const GAMES = [
     { id: 'diff', e: '🔍', n: 'まちがい さがし', s: 'ちがう ところは どこ？', c: '#E64980' },
@@ -286,7 +287,9 @@ function jaSay(t) {
     { id: 'dots', e: '✏️', n: 'てん つなぎ', s: 'じゅんばんに つなぐと なにかな？', c: '#F08C00' },
     { id: 'line', e: '〰️', n: 'せん たどり', s: 'めで せんを たどる', c: '#0CA678' },
     { id: 'count', e: '🔢', n: 'かず さがし', s: 'ぜんぶ みつけて かぞえる', c: '#7048E8' },
-    { id: 'chase', e: '🐞', n: 'め で おう', s: 'うごく ものを めで おいかける', c: '#E8590C' }
+    { id: 'chase', e: '🐞', n: 'め で おう', s: 'うごく ものを めで おいかける', c: '#E8590C' },
+    { id: 'maze', e: '🌀', n: 'めいろ', s: 'ゆびで みちを たどって ゴールへ', c: '#2B8A3E' },
+    { id: 'shadow', e: '👤', n: 'かげ あわせ', s: 'かげの かたちを みて あてる', c: '#495057' }
   ];
   const COL = ['#FA5252', '#339AF0', '#FCC419', '#51CF66', '#CC5DE8', '#FF922B'];
   const APP = {
@@ -921,6 +924,50 @@ const FX = (function () {
   }
 
   /* ============================================================
+     🌀 めいろ（あなほり ほうで つくる。かならず 1ぽんみち）
+     ============================================================ */
+  function genMaze(lv) {
+    const n = [5, 8, 11][lv - 1], W = n, H = n;
+    // walls[y][x] = { r: みぎの かべ, b: したの かべ }
+    const wall = Array.from({ length: H }, () => Array.from({ length: W }, () => ({ r: true, b: true })));
+    const seen = Array.from({ length: H }, () => Array(W).fill(false));
+    const st = [[0, 0]]; seen[0][0] = true;
+    while (st.length) {
+      const [x, y] = st[st.length - 1];
+      const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(d => [x + d[0], y + d[1]]).filter(([a, b]) => a >= 0 && b >= 0 && a < W && b < H && !seen[b][a]);
+      if (!nb.length) { st.pop(); continue; }
+      const [a, b] = pick(nb);
+      if (a > x) wall[y][x].r = false; if (a < x) wall[y][a].r = false; if (b > y) wall[y][x].b = false; if (b < y) wall[b][x].b = false;
+      seen[b][a] = true; st.push([a, b]);
+    }
+    return { n, wall, path: [[0, 0]], goal: [W - 1, H - 1] };
+  }
+  const open = (q, a, b) => { const [x1, y1] = a, [x2, y2] = b; if (Math.abs(x1 - x2) + Math.abs(y1 - y2) !== 1) return false; if (x2 > x1) return !q.wall[y1][x1].r; if (x2 < x1) return !q.wall[y1][x2].r; if (y2 > y1) return !q.wall[y1][x1].b; return !q.wall[y2][x1].b; };
+  function mazeSVG(q, play) {
+    const n = q.n, c = 10; let s = '<svg viewBox="-2 -2 ' + (n * c + 4) + ' ' + (n * c + 4) + '" xmlns="' + SVGNS + '"><rect x="0" y="0" width="' + n * c + '" height="' + n * c + '" fill="#fff"/>';
+    if (play && q.path.length > 1) s += '<polyline points="' + q.path.map(([x, y]) => (x * c + c / 2) + ',' + (y * c + c / 2)).join(' ') + '" fill="none" stroke="#FAB005" stroke-width="' + c * .42 + '" stroke-linecap="round" stroke-linejoin="round"/>';
+    let w = 'M0 0H' + n * c + 'M0 0V' + n * c;
+    q.wall.forEach((row, y) => row.forEach((cl, x) => { if (cl.r && !(x === n - 1 && y === n - 1)) w += 'M' + (x + 1) * c + ' ' + y * c + 'V' + (y + 1) * c; if (cl.b) w += 'M' + x * c + ' ' + (y + 1) * c + 'H' + (x + 1) * c; }));
+    s += '<path d="' + w + '" stroke="#343A40" stroke-width="1.6" stroke-linecap="square" fill="none"/>';
+    const p = play ? q.path[q.path.length - 1] : [0, 0];
+    s += em('🧀', (n - 1) * c + c / 2, (n - 1) * c + c / 2, c * .75) + em('🐭', p[0] * c + c / 2, p[1] * c + c / 2, c * .75);
+    return s + '</svg>';
+  }
+
+  /* ============================================================
+     👤 かげ あわせ（かたちだけで あてる）
+     ============================================================ */
+  const SHADOW = [['🐶', '🐱', '🐻', '🐼', '🐰', '🐯', '🦁', '🐮', '🐷'], ['🍎', '🍑', '🍊', '🍅', '🍒', '🍐'], ['🚗', '🚌', '🚓', '🚑', '🚕', '🚚'], ['✈️', '🚀', '🚁', '⛵', '🚂'], ['⭐', '🌙', '☀️', '☁️', '⚡', '❄️'], ['🎸', '🎺', '🥁', '🎻', '🎹'], ['🐟', '🐬', '🐳', '🦈', '🐙', '🦀'], ['🦋', '🐞', '🐝', '🐌', '🐛', '🐜'], ['✂️', '🔑', '✏️', '🔨', '🥄', '🧹'], ['🌻', '🌷', '🌳', '🌵', '🍄', '🌸']];
+  function genShadow(lv) {
+    const grp = pick(SHADOW), all = SHADOW.flat();
+    const ans = pick(grp), n = [3, 4, 6][lv - 1];
+    // むずかしい ほど にた なかまから まぎらわしい ものを えらぶ
+    const others = lv === 1 ? shuffle(all.filter(x => grp.indexOf(x) < 0)) : shuffle(grp.filter(x => x !== ans)).concat(shuffle(all.filter(x => grp.indexOf(x) < 0)));
+    const ch = shuffle([ans].concat(others.slice(0, n - 1)));
+    return { ans, ch, mode: lv === 3 && Math.random() < .5 ? 'col' : 'sil' };
+  }
+
+  /* ============================================================
      ホーム
      ============================================================ */
   function renderHome() {
@@ -949,6 +996,8 @@ const FX = (function () {
     if (G.id === 'line') G.q = genLine(lv);
     if (G.id === 'count') G.q = genCount(lv);
     if (G.id === 'chase') G.q = { hits: 0, need: [5, 7, 9][lv - 1], miss: 0 };
+    if (G.id === 'maze') G.q = genMaze(lv);
+    if (G.id === 'shadow') G.q = genShadow(lv);
     render();
   }
   function head(ask, cnt) {
@@ -1034,6 +1083,39 @@ const FX = (function () {
       return;
     }
     if (id === 'chase') renderChase();
+    if (id === 'maze') {
+      const box = h('div', { style: 'height:100%;width:100%;display:flex;justify-content:center;touch-action:none', html: mazeSVG(q, true) });
+      let down = false;
+      const cellAt = e => { const sv = box.querySelector('svg'), pt = sv.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const p = pt.matrixTransform(sv.getScreenCTM().inverse()); return [Math.floor(p.x / 10), Math.floor(p.y / 10)]; };
+      const step = e => {
+        if (G.busy) return;
+        const [x, y] = cellAt(e), last = q.path[q.path.length - 1], prev = q.path[q.path.length - 2];
+        if (x === last[0] && y === last[1]) return;
+        if (prev && x === prev[0] && y === prev[1]) { q.path.pop(); box.innerHTML = mazeSVG(q, true); return; }
+        if (open(q, last, [x, y]) && !q.path.some(p => p[0] === x && p[1] === y)) {
+          q.path.push([x, y]); tone(520 + q.path.length * 6, 0, .03, 'triangle', .12); box.innerHTML = mazeSVG(q, true);
+          if (x === q.goal[0] && y === q.goal[1]) { down = false; speak('ゴール'); solved(box); }
+        }
+      };
+      box.addEventListener('pointerdown', e => { down = true; try { box.setPointerCapture(e.pointerId); } catch (er) { /* 無視 */ } step(e); });
+      box.addEventListener('pointermove', e => { if (down) step(e); });
+      box.addEventListener('pointerup', () => { down = false; }); box.addEventListener('pointercancel', () => { down = false; });
+      setView('g', [head('🐭 を 🧀 まで ゆびで つれて いこう', q.n + '×' + q.n), h('div', { class: 'stage' }, box),
+        h('div', { class: 'tools' }, h('button', { type: 'button', class: 'mid-btn', onclick: () => { q.path = [[0, 0]]; box.innerHTML = mazeSVG(q, true); } }, '↺ はじめから'))]);
+      speak('ねずみを チーズまで ゆびで つれて いこう');
+      return;
+    }
+    if (id === 'shadow') {
+      const sil = q.mode === 'sil';
+      const top = h('div', { class: 'target' }, h('span', { class: 'emo' + (sil ? ' shadow' : ''), style: 'font-size:clamp(70px,14vh,130px)' }, q.ans), h('b', null, sil ? 'この かげは<br>どれ？' : 'この かげは<br>どれ？'));
+      top.querySelector('b').innerHTML = sil ? 'この かげは<br>どれかな？' : 'この かげを<br>さがそう';
+      const grid = h('div', { class: 'grid', style: '--c:' + (q.ch.length === 4 ? 2 : 3) + ';--r:' + Math.ceil(q.ch.length / 3) }, q.ch.map(e => {
+        const b = h('button', { type: 'button', onclick: () => { if (G.busy || b.classList.contains('ng')) return; if (e === q.ans) { b.classList.add('ok'); [...grid.querySelectorAll('.shadow')].forEach(x => x.classList.remove('shadow')); top.querySelector('.emo').classList.remove('shadow'); solved(b); } else { b.classList.add('ng'); miss(); speak('かたちを よく みて'); } } }, h('span', { class: 'emo' + (sil ? '' : ' shadow'), style: 'font-size:clamp(46px,9vh,90px)' }, e));
+        return b; }));
+      setView('g', [head(sil ? 'かげの かたちを みて、おなじ ものを えらぼう' : 'おなじ かたちの かげを えらぼう'), h('div', { class: 'stage split' }, top, grid)]);
+      speak(sil ? 'この かげは どれかな？' : 'この かげを さがそう');
+      return;
+    }
   }
   function hintDiff() { const q = G.q, left = q.diffs.filter(i => q.found.indexOf(i) < 0); if (!left.length) return; G.miss++; const c = q.right[left[0]], sv = $('.stage.two > div:last-child svg'); if (sv) sv.insertAdjacentHTML('beforeend', '<circle class="mark blink" cx="' + c.x + '" cy="' + c.y + '" r="' + (100 / q.c * .45) + '" style="stroke:#FAB005"/>'); }
 
@@ -1112,6 +1194,19 @@ const FX = (function () {
       const q = genLine(lv); q.colored = false;
       return ['<div class="ppage">' + HD('〰️ せん たどり', 'どこに つくかな？') + '<div class="pw">' + lineSVG(q) + (ans ? '<div class="ans">こたえ：' + q.starts.map((e, i) => e + '→' + q.ends[q.perm[i]]).join('　') + '</div>' : '') + '</div>' + PF + '</div>'];
     }
+    if (type === 'maze') {
+      const q = genMaze(lv);
+      if (ans) { // こたえの みち
+        const prev = {}, k = (x, y) => x + ',' + y, qu = [[0, 0]]; prev[k(0, 0)] = null;
+        while (qu.length) { const [x, y] = qu.shift(); if (x === q.goal[0] && y === q.goal[1]) break; [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(d => { const a = x + d[0], b = y + d[1]; if (a >= 0 && b >= 0 && a < q.n && b < q.n && !(k(a, b) in prev) && open(q, [x, y], [a, b])) { prev[k(a, b)] = [x, y]; qu.push([a, b]); } }); }
+        const path = []; let c = q.goal; while (c) { path.unshift(c); c = prev[k(c[0], c[1])]; } q.path = path;
+      }
+      return ['<div class="ppage">' + HD('🌀 めいろ', '🐭 から 🧀 まで') + '<div class="pw" style="justify-content:center">' + mazeSVG(q, ans).replace('<svg ', '<svg style="width:170mm;height:170mm" ') + '</div>' + PF + '</div>'];
+    }
+    if (type === 'shadow') {
+      const grp = shuffle(SHADOW).slice(0, 2).flatMap(g => shuffle(g).slice(0, 3)), sh = shuffle(grp.slice());
+      return ['<div class="ppage">' + HD('👤 かげ あわせ', 'おなじ ものを せんで むすぼう') + '<div class="pw"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6mm 50mm;width:100%">' + grp.map((e, i) => '<div style="font-size:24mm;text-align:center">' + e + '</div><div style="font-size:24mm;text-align:center;filter:brightness(0)">' + sh[i] + '</div>').join('') + '</div>' + (ans ? '<div class="ans">こたえ：' + grp.map(e => e + '→ みぎの ' + (sh.indexOf(e) + 1) + 'ばんめ').join('　') + '</div>' : '') + '</div>' + PF + '</div>'];
+    }
     const q = genCount(lv); if (ans) q.found = q.items.map((t, i) => i).filter(i => q.items[i].e === q.tg);
     return ['<div class="ppage">' + HD('🔢 かず さがし', q.tg + ' に ○を つけよう') + '<div class="pw">' + countSVG(q, ans).replace(/class="hit"[^/]*\/>/g, '') + '<div class="tgt">' + q.tg + ' は ぜんぶで（　' + (ans ? q.n : '　') + '　）こ</div></div>' + PF + '</div>'];
   }
@@ -1120,7 +1215,7 @@ const FX = (function () {
     app: { id: 'miru-chikara', title: 'みる ちから', icon: '👁️' },
     list() {
       const lv = { key: 'lv', label: 'むずかしさ', opts: [[1, 'やさしい'], [2, 'ふつう'], [3, 'むずかしい']], def: Number(S().level) || 1 }, an = { key: 'ans', label: 'こたえ', opts: [['off', 'なし'], ['on', 'あり']], def: 'off' };
-      return [{ id: 'diff', name: 'まちがい さがし', icon: '🔍', params: [lv, an] }, { id: 'same', name: 'おなじ かたち', icon: '🧩', params: [lv, an] }, { id: 'dots', name: 'てん つなぎ', icon: '✏️', params: [lv, an] }, { id: 'line', name: 'せん たどり', icon: '〰️', params: [lv, an] }, { id: 'count', name: 'かず さがし', icon: '🔢', params: [lv, an] }];
+      return [{ id: 'diff', name: 'まちがい さがし', icon: '🔍', params: [lv, an] }, { id: 'same', name: 'おなじ かたち', icon: '🧩', params: [lv, an] }, { id: 'dots', name: 'てん つなぎ', icon: '✏️', params: [lv, an] }, { id: 'line', name: 'せん たどり', icon: '〰️', params: [lv, an] }, { id: 'count', name: 'かず さがし', icon: '🔢', params: [lv, an] }, { id: 'maze', name: 'めいろ', icon: '🌀', params: [lv, an] }, { id: 'shadow', name: 'かげ あわせ', icon: '👤', params: [an] }];
     },
     build(id, params) { return Promise.resolve({ pages: buildPages(id, params), css: document.querySelector('style').textContent }); }
   };
@@ -1137,7 +1232,7 @@ const FX = (function () {
     add(log.length ? h('table', { class: 'rec-table' }, h('tr', null, ['日時', 'あそび', 'レベル', 'よく できた', 'じかん'].map(x => h('th', null, x))),
       log.map(r => { const d = new Date(r.t), g = GAMES.find(x => x.id === r.g); return h('tr', null, h('td', null, (d.getMonth() + 1) + '/' + d.getDate() + ' ' + d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0')), h('td', null, g ? g.e + ' ' + g.n : r.g), h('td', null, LVN[r.lv] || ''), h('td', null, r.ok + ' / ' + r.n), h('td', null, r.sec + 'びょう')); })) : h('p', { class: 'note' }, 'まだ きろくが ありません。'));
   };
-  if (TEST) window.__mc = { store: () => store, startGame, G: () => G, genDiff, genSame, genDots, genLine, genCount, persist };
+  if (TEST) window.__mc = { store: () => store, startGame, G: () => G, genDiff, genSame, genDots, genLine, genCount, genMaze, genShadow, persist };
   startApp();
 
 })();

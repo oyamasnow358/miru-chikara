@@ -35,6 +35,7 @@
   .target svg { width: clamp(60px, 11vh, 110px); height: clamp(60px, 11vh, 110px); border: none; background: none; }
   .target b { font-size: clamp(16px, 2vw, 22px); }
   .ends { display: flex; justify-content: space-around; }
+  .shadow { filter: brightness(0); opacity: .85; }
   .tools { display: flex; justify-content: center; gap: 10px; }
 
   @media (orientation: portrait) { .stage.two { flex-direction: column; } .stage.two > div { width: 100%; height: auto; flex: 1; min-height: 0; } .stage.split { flex-direction: column; } }
